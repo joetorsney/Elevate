@@ -1,3 +1,7 @@
+/**
+ * Prints the controller inputs the Arduino recieves.
+ */ 
+
 #include <Wire.h>
 
 #define CHANNEL1 0
@@ -9,10 +13,6 @@
 #define PITCH    1
 #define ROLL     2
 #define THROTTLE 3
-
-#define X 0     
-#define Y 1
-#define Z 2    
 
 #define LEDPIN 13
 
@@ -50,14 +50,6 @@ void configueChannelMapping() {
     mode_mapping[THROTTLE] = CHANNEL3;
 }
 
-/**
- * setupMPU turns the MPU6050 and configures its registers to provide gyro
- * and accelerometer data.
- */
-void setupMPU() {
-
-}
-
 void setup() {
 
     Serial.begin(9600);
@@ -65,7 +57,6 @@ void setup() {
     pinMode(LEDPIN, OUTPUT);
     digitalWrite(LEDPIN, HIGH);
 
-    // setupMPU();
     configueChannelMapping();
 
     // Set pin registers to interrupt on controller input
@@ -78,13 +69,7 @@ void setup() {
 }
 
 void loop() {
-    // TODO
-    //  Read sensors
-    //  Calculate orientation
-    //  Do PID
-    //  Write to Motors
-
-    digitalWrite(LEDPIN, millis()>>10 &1);
+    dumpChannels();
 }
 
 ISR(PCINT0_vect) {
