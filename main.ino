@@ -44,13 +44,29 @@ void setup() {
     // setupMPU();
     configueChannelMapping();
 
+    // Set pin registers to interrupt on controller input
+    // PCINT0..3 on the ATMega correspond to pins 8..11 on the Arduino Uno
+    PCICR  |= (1 << PCIE0); // Set PCMSK0 scan (watch the register for change)
+    PCMSK0 |= (1 << PCINT0); // Set pin 0 to interrupt on change
+    PCMSK0 |= (1 << PCINT1);
+    PCMSK0 |= (1 << PCINT2);
+    PCMSK0 |= (1 << PCINT3);
+
     delay(3000);
 }
 
 void loop() {
-    // Read sensors
-    // Calculate orientation
-    // Do PID
-    // Write to Motors
-    digitalWrite(LEDPIN, millis()>>10 &1);
+    // TODO
+    //  Read sensors
+    //  Calculate orientation
+    //  Do PID
+    //  Write to Motors
+
+    // digitalWrite(LEDPIN, millis()>>10 &1);
+    digitalWrite(LEDPIN, 0);
+}
+
+ISR(PCINT0_vect) {
+	// Interrupt routine here
+    digitalWrite(LEDPIN, 1);
 }
