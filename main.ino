@@ -19,6 +19,27 @@
 // Maps control axes to input channels
 int mode_mapping[4];
 
+volatile unsigned long current_time;
+volatile unsigned long timer[4];
+
+// Previous state of each channel (HIGH or LOW)
+volatile byte previous_state[4];
+
+// Duration of the pulse on each channel in µs
+volatile unsigned int pulse_duration[4] = {1500, 1000, 1500, 1500};
+
+void dumpChannels()
+{
+    for (int i = CHANNEL1; i <= CHANNEL4; i++) {
+        Serial.print("Channel ");
+        Serial.print(i+1);
+        Serial.print(": ");
+        Serial.print(pulse_duration[i]);
+        Serial.print("\t");
+    }
+    Serial.print("\n");
+}
+
 /**
  * configureChannelMapping maps axes to input channels.
  */
@@ -38,6 +59,9 @@ void setupMPU() {
 }
 
 void setup() {
+
+    Serial.begin(9600);
+
     pinMode(LEDPIN, OUTPUT);
     digitalWrite(LEDPIN, HIGH);
 
@@ -62,11 +86,71 @@ void loop() {
     //  Do PID
     //  Write to Motors
 
-    // digitalWrite(LEDPIN, millis()>>10 &1);
-    digitalWrite(LEDPIN, 0);
+    // if (pulse_duration[CHANNEL2] > 1500) {
+    //     digitalWrite(LEDPIN, millis()>>10 &1);
+    // } else {
+    //     digitalWrite(LEDPIN, 0);
+    // }
+    dumpChannels();
+
 }
 
 ISR(PCINT0_vect) {
-	// Interrupt routine here
-    digitalWrite(LEDPIN, 1);
+    current_time = micros();
+
+    // Check if pin 8 is high
+    if (PINB & B00000001) {
+        if (previous_state[CHANNEL1] == LOW) {
+            // if change LOW -> HIGH, start timer
+            previous_state[CHANNEL1] = HIGH;
+            timer[CHANNEL1] = current_time;
+        }
+        
+    } else if (previous_state[CHANNEL1] == HIGH) {
+        // if change HIGH -> LOW, stop timer and store it
+        previous_state[CHANNEL1] = LOW;
+        pulse_duration[CHANNEL1] = (int) current_time - timer[CHANNEL1];
+    }
+
+    // Check if pin 9 is high
+    if (PINB & B00000010) {
+        if (previous_state[CHANNEL2] == LOW) {
+            // if change LOW -> HIGH, start timer
+            previous_state[CHANNEL2] = HIGH;
+            timer[CHANNEL2] = current_time;
+        }
+        
+    } else if (previous_state[CHANNEL2] == HIGH) {
+        // if change HIGH -> LOW, stop timer and store it
+        previous_state[CHANNEL2] = LOW;
+        pulse_duration[CHANNEL2] = (int) current_time - timer[CHANNEL2];
+    }
+
+    // Check if pin 10 is high
+    if (PINB & B00000100) {
+        if (previous_state[CHANNEL3] == LOW) {
+            // if change LOW -> HIGH, start timer
+            previous_state[CHANNEL3] = HIGH;
+            timer[CHANNEL3] = current_time;
+        }
+        
+    } else if (previous_state[CHANNEL3] == HIGH) {
+        // if change HIGH -> LOW, stop timer and store it
+        previous_state[CHANNEL3] = LOW;
+        pulse_duration[CHANNEL3] = (int) current_time - timer[CHANNEL3];
+    }
+
+    // Check if pin 11 is high
+    if (PINB & B00001000) {
+        if (previous_state[CHANNEL4] == LOW) {
+            // if change LOW -> HIGH, start timer
+            previous_state[CHANNEL4] = HIGH;
+            timer[CHANNEL4] = current_time;
+        }
+        
+    } else if (previous_state[CHANNEL4] == HIGH) {
+        // if change HIGH -> LOW, stop timer and store it
+        previous_state[CHANNEL4] = LOW;
+        pulse_duration[CHANNEL4] = (int) current_time - timer[CHANNEL4];
+    }
 }
