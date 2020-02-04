@@ -89,7 +89,7 @@ ISR(PCINT0_vect) {
         pulse_duration[CHANNEL1] = (int) current_time - timer[CHANNEL1];
     }
 
-    // Check if pin 9 is high
+    // Check if pin 9 is high  
     if (PINB & B00000010) {
         if (previous_state[CHANNEL2] == LOW) {
             // if change LOW -> HIGH, start timer
