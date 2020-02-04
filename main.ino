@@ -39,14 +39,38 @@ unsigned int esc_timer;
 unsigned int now, duration;
 unsigned int period = 1000000/FREQ;
 
-// enum State { STOPPED, STARTED };
+enum State { STOPPED, STARTED };
+State drone_state = STOPPED;
 // ------------------------------------------------------------- //
 
+void stateTransition() {
+    if (drone_state == STOPPED) {
+        if (pulse_duration[YAW] < 1200 && pulse_duration[THROTTLE] < 1200) {
+            drone_state = STARTED;
+        }
+    } else if (drone_state == STARTED) {
+        if (pulse_duration[YAW] > 1800 && pulse_duration[THROTTLE] < 1200) {
+            drone_state = STOPPED;
+            digitalWrite(LEDPIN, HIGH);
+        }       
+    }
+}
+
 void calcESCPulses() {
-    esc_pulses[0] = 1000;
-    esc_pulses[1] = 1000;
-    esc_pulses[2] = 1000;
-    esc_pulses[3] = 1000;
+    if (drone_state == STOPPED) {
+        esc_pulses[0] = 1000;
+        esc_pulses[1] = 1000;
+        esc_pulses[2] = 1000;
+        esc_pulses[3] = 1000;
+
+        return;
+    }
+    
+    esc_pulses[0] = 1200;
+    esc_pulses[1] = 1200;
+    esc_pulses[2] = 1200;
+    esc_pulses[3] = 1200;
+
 }
 
 /**
@@ -125,6 +149,8 @@ void setup() {
 
 void loop() {
 
+    stateTransition();
+
     // Read MPU 
     // Calculate orientation
     // Do PID
@@ -132,7 +158,9 @@ void loop() {
     calcESCPulses();
     sendESCPulses();
 
-    digitalWrite(LEDPIN, millis()>>10 &1);
+    if (drone_state == STARTED) {
+        digitalWrite(LEDPIN, millis()>>10 &(1));
+    }
 }
 
 ISR(PCINT0_vect) {
