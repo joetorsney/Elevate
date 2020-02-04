@@ -14,10 +14,14 @@
 #define Y 1
 #define Z 2    
 
+#define FREQ 250 // Frequency in MHz
+
 #define LEDPIN 13
 
 // Maps control axes to input channels
 int mode_mapping[4];
+
+// ------------------ Capturing Input Signal ------------------- //
 
 volatile unsigned long current_time;
 volatile unsigned long timer[4];
@@ -28,16 +32,53 @@ volatile byte previous_state[4];
 // Duration of the pulse on each channel in µs
 volatile unsigned int pulse_duration[4] = {1500, 1000, 1500, 1500};
 
-void dumpChannels()
-{
-    for (int i = CHANNEL1; i <= CHANNEL4; i++) {
-        Serial.print("Channel ");
-        Serial.print(i+1);
-        Serial.print(": ");
-        Serial.print(pulse_duration[i]);
-        Serial.print("\t");
+// ------------------- ESC Signal Generation -------------------- //
+
+unsigned int esc_pulses[4] = {1000, 1000, 1000, 1000};
+unsigned int esc_timer;
+unsigned int now, duration;
+unsigned int period = 1000000/FREQ;
+
+// enum State { STOPPED, STARTED };
+// ------------------------------------------------------------- //
+
+void calcESCPulses() {
+    esc_pulses[0] = 1000;
+    esc_pulses[1] = 1000;
+    esc_pulses[2] = 1000;
+    esc_pulses[3] = 1000;
+}
+
+/**
+ * sendESCPulses sends pwm signals to the escs every 'period' microseconds.
+ * ESCs on ports 4-7.
+ */ 
+void sendESCPulses() {
+
+    // Start sending pulses every 'period' microseconds
+    while ((micros() - esc_timer) < period);
+
+    esc_timer = micros();
+    PORTD |= B11110000;
+
+    while (PORTD >= 16) {
+        now = micros();
+        duration = now - esc_timer;
+
+        // If esc 0  has had its pulse, stop it.
+        if (esc_pulses[0] <= duration) {
+            PORTD &= B01111111;
+        }
+        if (esc_pulses[1] <= duration) {
+            PORTD &= B10111111;
+        }
+        if (esc_pulses[2] <= duration) {
+            PORTD &= B11011111;
+        }
+        if (esc_pulses[3] <= duration) {
+            PORTD &= B11101111;
+        }
     }
-    Serial.print("\n");
 }
 
 /**
@@ -60,10 +101,12 @@ void setupMPU() {
 
 void setup() {
 
-    Serial.begin(9600);
-
+    // LED for status indication
     pinMode(LEDPIN, OUTPUT);
     digitalWrite(LEDPIN, HIGH);
+
+    // Set pins 4-7 as outputs 
+    DDRD |= B11110000;
 
     // setupMPU();
     configueChannelMapping();
@@ -75,14 +118,19 @@ void setup() {
     PCMSK0 |= (1 << PCINT1);
     PCMSK0 |= (1 << PCINT2);
     PCMSK0 |= (1 << PCINT3);
+
+    // Start the motors
+    sendESCPulses();
 }
 
 void loop() {
-    // TODO
-    //  Read sensors
-    //  Calculate orientation
-    //  Do PID
-    //  Write to Motors
+
+    // Read MPU 
+    // Calculate orientation
+    // Do PID
+
+    calcESCPulses();
+    sendESCPulses();
 
     digitalWrite(LEDPIN, millis()>>10 &1);
 }
