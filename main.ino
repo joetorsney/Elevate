@@ -45,11 +45,11 @@ State drone_state = STOPPED;
 
 void stateTransition() {
     if (drone_state == STOPPED) {
-        if (pulse_duration[YAW] < 1200 && pulse_duration[THROTTLE] < 1200) {
+        if (pulse_duration[mode_mapping[YAW]] < 1200 && pulse_duration[mode_mapping[THROTTLE]] < 1200) {
             drone_state = STARTED;
         }
     } else if (drone_state == STARTED) {
-        if (pulse_duration[YAW] > 1800 && pulse_duration[THROTTLE] < 1200) {
+        if (pulse_duration[mode_mapping[YAW]] > 1800 && pulse_duration[mode_mapping[THROTTLE]] < 1200) {
             drone_state = STOPPED;
             digitalWrite(LEDPIN, HIGH);
         }       
@@ -58,6 +58,7 @@ void stateTransition() {
 
 void calcESCPulses() {
     if (drone_state == STOPPED) {
+        // 1000ms pulse to keep motors happy.
         esc_pulses[0] = 1000;
         esc_pulses[1] = 1000;
         esc_pulses[2] = 1000;
@@ -70,7 +71,6 @@ void calcESCPulses() {
     esc_pulses[1] = 1200;
     esc_pulses[2] = 1200;
     esc_pulses[3] = 1200;
-
 }
 
 /**
