@@ -67,10 +67,10 @@ void calcESCPulses() {
         return;
     }
     
-    esc_pulses[0] = 1200;
-    esc_pulses[1] = 1200;
-    esc_pulses[2] = 1200;
-    esc_pulses[3] = 1200;
+    esc_pulses[0] = pulse_duration[mode_mapping[THROTTLE]];
+    esc_pulses[1] = pulse_duration[mode_mapping[THROTTLE]];
+    esc_pulses[2] = pulse_duration[mode_mapping[THROTTLE]];
+    esc_pulses[3] = pulse_duration[mode_mapping[THROTTLE]];
 }
 
 /**
