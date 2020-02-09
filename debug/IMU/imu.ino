@@ -5,24 +5,24 @@
 
 #include <Wire.h>
 
-const int MPU_addr = 0x68;
+const int IMU_addr = 0x68;
 int16_t AccX,AccY,AccZ,Temp,GyroX,GyroY,GyroZ;
 
 void setup() {
     Wire.begin();
-    Wire.beginTransmission(MPU_addr);
-    Wire.Write(0x6B);
-    Wire.Write(0);
+    Wire.beginTransmission(IMU_addr);
+    Wire.write(0x6B);
+    Wire.write(0);
     Wire.endTransmission(true);
     Serial.begin(9600);
 }
 
 void loop() {
-    Wire.beginTransmission(MPU6050_addr);
+    Wire.beginTransmission(IMU_addr);
     Wire.write(0x3B);
     Wire.endTransmission(false);
 
-    Wire.requestFrom(MPU6050_addr, 14, true);
+    Wire.requestFrom(IMU_addr, 14, true);
     AccX=Wire.read()<<8|Wire.read();
     AccY=Wire.read()<<8|Wire.read();
     AccZ=Wire.read()<<8|Wire.read();

@@ -76,6 +76,12 @@ void calcESCPulses() {
 /**
  * sendESCPulses sends pwm signals to the escs every 'period' microseconds.
  * ESCs on ports 4-7.
+ * 
+ *     6   5
+ *      \ /
+ *       |      ^ Front
+ *      / \     
+ *     4   7
  */ 
 void sendESCPulses() {
 
