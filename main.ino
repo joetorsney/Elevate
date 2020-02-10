@@ -14,6 +14,8 @@
 #define Y 1
 #define Z 2    
 
+#define GYRO_SSF 65.5
+
 #define FREQ 250 // Frequency in MHz
 
 #define LEDPIN 13
@@ -150,12 +152,39 @@ void configueChannelMapping() {
 /**
  * setupIMU turns the MPU6050 and configures its registers to provide gyro
  * and accelerometer data.
+ * 
+ * See MPU6050 Datasheet
+ * https://www.invensense.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf
+ * 
+ * MPU6050 Register Map
+ * https://www.invensense.com/wp-content/uploads/2015/02/MPU-6000-Register-Map1.pdf
+ * 
  */
 void setupIMU() {
     Wire.begin();
+
+    // Set PWR_MGMT register
     Wire.beginTransmission(IMU_addr);
     Wire.write(0x6B);
     Wire.write(0);
+    Wire.endTransmission(true);
+
+    // Set Gyro sensitivity
+    Wire.beginTransmission(IMU_addr);
+    Wire.write(0x1B); // GYRO_CONFIG register
+    Wire.write(B00001000); // Set sensitivity scale factor = 65.5
+    Wire.endTransmission(true);
+
+    // Set Accel sensitivity
+    Wire.beginTransmission(IMU_addr);
+    Wire.write(0x1C); // ACCEL_CONFIG register
+    Wire.write(B00001000); // Set sensitivity +-4g
+    Wire.endTransmission(true);
+
+    // Set low pass filter
+    Wire.beginTransmission(IMU_addr);
+    Wire.write(0x1A); // CONFIG register
+    Wire.write(B0000010); // DLPF @ ~43hz
     Wire.endTransmission(true);
 
     // 'Zero' the gyro by mean of 2000 samples
