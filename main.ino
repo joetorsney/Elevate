@@ -40,6 +40,8 @@ int16_t accel[3] = {0, 0, 0};
 int16_t gyro[3] = {0, 0, 0};
 int16_t temp;
 
+long gyro_offset[3] = {0, 0, 0};
+
 // ------------------- ESC Signal Generation -------------------- //
 
 unsigned int esc_pulses[4] = {1000, 1000, 1000, 1000};
@@ -49,6 +51,7 @@ unsigned int period = 1000000/FREQ;
 
 enum State { STOPPED, STARTED };
 State drone_state = STOPPED;
+
 // ------------------------------------------------------------- //
 
 void stateTransition() {
@@ -154,6 +157,24 @@ void setupIMU() {
     Wire.write(0x6B);
     Wire.write(0);
     Wire.endTransmission(true);
+
+    // 'Zero' the gyro by mean of 2000 samples
+    int samples = 2000;
+    for (int i = 0; i < samples; i++) {
+        readIMUSignal();
+
+        gyro_offset[X] += gyro[X];
+        gyro_offset[Y] += gyro[Y];
+        gyro_offset[Z] += gyro[Z];
+
+        // Drone state is STOPPED, send 1000ms pulses.
+        sendESCPulses();
+    }
+
+    // Take mean
+    for (int i = 0; i < 2; i++) {
+        gyro_offset[i] /= samples;
+    }
 }
 
 void setup() {
