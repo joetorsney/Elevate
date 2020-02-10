@@ -32,6 +32,14 @@ volatile byte previous_state[4];
 // Duration of the pulse on each channel in µs
 volatile unsigned int pulse_duration[4] = {1500, 1000, 1500, 1500};
 
+// ------------------------ IMU Signal -------------------------- //
+
+const int IMU_addr = 0x68;
+
+int16_t accel[3] = {0, 0, 0};
+int16_t gyro[3] = {0, 0, 0};
+int16_t temp;
+
 // ------------------- ESC Signal Generation -------------------- //
 
 unsigned int esc_pulses[4] = {1000, 1000, 1000, 1000};
@@ -54,6 +62,21 @@ void stateTransition() {
             digitalWrite(LEDPIN, HIGH);
         }       
     }
+}
+
+void readIMUSignal() {
+    Wire.beginTransmission(IMU_addr);
+    Wire.write(0x3B); // Request data starting from this register on the IMU
+    Wire.endTransmission(false);
+
+    Wire.requestFrom(IMU_addr, 14, true); // Now ask for 14 bytes.
+    accel[X] = Wire.read() << 8 | Wire.read();
+    accel[Y] = Wire.read() << 8 | Wire.read();
+    accel[Z] = Wire.read() << 8 | Wire.read();
+    temp = Wire.read() << 8 | Wire.read();
+    gyro[X] = Wire.read() << 8 | Wire.read();
+    gyro[Y] = Wire.read() << 8 | Wire.read();
+    gyro[Z] = Wire.read() << 8 | Wire.read();
 }
 
 void calcESCPulses() {
@@ -122,11 +145,15 @@ void configueChannelMapping() {
 }
 
 /**
- * setupMPU turns the MPU6050 and configures its registers to provide gyro
+ * setupIMU turns the MPU6050 and configures its registers to provide gyro
  * and accelerometer data.
  */
-void setupMPU() {
-
+void setupIMU() {
+    Wire.begin();
+    Wire.beginTransmission(IMU_addr);
+    Wire.write(0x6B);
+    Wire.write(0);
+    Wire.endTransmission(true);
 }
 
 void setup() {
